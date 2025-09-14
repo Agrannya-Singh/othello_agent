@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras import models, layers
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, session
 import copy
 import random
 
@@ -13,11 +13,24 @@ BOARD_SIZE = 8
 DIRECTIONS = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
 
 app = Flask(__name__)
-game = None  # Global game instance
+app.secret_key = 'VISHU_THE_DON'  # a seceret kry  for mysterious purposes (and validation)
 
-# Zobrist hashing setup
-ZOBRIST_TABLE = np.random.randint(0, 2**64, size=(BOARD_SIZE, BOARD_SIZE, 3), dtype=np.uint64)
-TRANSPOSITION_TABLE = {}  # Hash -> (score, depth, flag)
+# Global model for shared learning across all games/sessions
+#intially set as zero because why not 
+GLOBAL_MODEL = None
+
+def create_global_model():
+    global GLOBAL_MODEL
+    if GLOBAL_MODEL is None:
+        GLOBAL_MODEL = models.Sequential([
+            layers.Dense(128, activation='relu', input_shape=(BOARD_SIZE * BOARD_SIZE,)),#relu for hidden layers of the neuron 
+            #tanh for outer / surface neuron layers
+            layers.Dense(64, activation='relu'),
+            layers.Dense(32, activation='relu'),
+            layers.Dense(1, activation='tanh')
+        ])
+        GLOBAL_MODEL.compile(optimizer='adam', loss='mse')
+    return GLOBAL_MODEL
 
 # Difficulty to depth mapping
 DIFFICULTY_DEPTHS = {
@@ -34,21 +47,10 @@ class Othello:
         self.board[4][3] = BLACK
         self.board[4][4] = WHITE
         self.current_player = BLACK
-        self.model = self.create_model()
-        self.game_states = []  # Store board states and moves for training
+        self.model = create_global_model()  # Shared model for evaluation and training
+        self.game_states = []  # Store board states and players for training
         self.game_outcome = None
         self.depth = DIFFICULTY_DEPTHS.get(difficulty.lower(), DIFFICULTY_DEPTHS['medium'])
-
-    def create_model(self):
-        """Create a neural network for board evaluation."""
-        model = models.Sequential([
-            layers.Dense(128, activation='relu', input_shape=(BOARD_SIZE * BOARD_SIZE,)),
-            layers.Dense(64, activation='relu'),
-            layers.Dense(32, 'relu'),
-            layers.Dense(1, 'tanh')
-        ])
-        model.compile(optimizer='adam', loss='mse')
-        return model
 
     def collect_game_data(self):
         """Collect the current board state for training."""
@@ -79,17 +81,6 @@ class Othello:
         black_count = np.sum(self.board == BLACK)
         white_count = np.sum(self.board == WHITE)
         return (black_count - white_count) / (black_count + white_count + 1e-6)
-
-    def compute_hash(self):
-        """Compute Zobrist hash for the current board state."""
-        hash_value = 0
-        for row in range(BOARD_SIZE):
-            for col in range(BOARD_SIZE):
-                piece = self.board[row][col]
-                if piece != EMPTY:
-                    index = 0 if piece == BLACK else 1
-                    hash_value ^= ZOBRIST_TABLE[row][col][index]
-        return hash_value
 
     def get_valid_moves(self):
         """Return a list of valid moves for the current player."""
@@ -132,7 +123,11 @@ class Othello:
 
     def is_game_over(self):
         """Check if the game is over."""
-        return not self.get_valid_moves() and not Othello(self.board, -self.current_player).get_valid_moves()
+        if self.get_valid_moves():
+            return False
+        temp_game = copy.deepcopy(self)
+        temp_game.current_player *= -1
+        return not temp_game.get_valid_moves()
 
     def get_winner(self):
         """Determine the winner based on piece count."""
@@ -153,64 +148,41 @@ class Othello:
         return self.get_heuristic_score()
 
     def minimax(self, depth, alpha, beta, maximizing_player):
-        """Minimax with Alpha-Beta pruning and Zobrist hashing."""
-        hash_value = self.compute_hash()
-        if hash_value in TRANSPOSITION_TABLE:
-            score, stored_depth, flag = TRANSPOSITION_TABLE[hash_value]
-            if stored_depth >= depth:
-                if flag == 'exact':
-                    return score
-                elif flag == 'lowerbound' and score > alpha:
-                    alpha = score
-                elif flag == 'upperbound' and score < beta:
-                    beta = score
-                if alpha >= beta:
-                    return score
-
+        """Minimax with Alpha-Beta pruning (no hashing or transposition table)."""
         if depth == 0 or self.is_game_over():
-            score = self.evaluate_board()
-            TRANSPOSITION_TABLE[hash_value] = (score, depth, 'exact')
-            return score
+            return self.evaluate_board()
 
         valid_moves = self.get_valid_moves()
         if not valid_moves:
-            score = self.evaluate_board()
-            TRANSPOSITION_TABLE[hash_value] = (score, depth, 'exact')
-            return score
+            return self.evaluate_board()
 
         if maximizing_player:
             max_eval = float('-inf')
             for move in valid_moves:
-                new_game = Othello(difficulty=self.depth)
-                new_game.board = self.board.copy()
-                new_game.current_player = self.current_player
+                new_game = copy.deepcopy(self)
                 new_game.make_move(move)
+                new_game.current_player *= -1
                 eval = new_game.minimax(depth - 1, alpha, beta, False)
                 max_eval = max(max_eval, eval)
                 alpha = max(alpha, eval)
                 if beta <= alpha:
                     break
-            flag = 'exact' if max_eval <= alpha else 'lowerbound'
-            TRANSPOSITION_TABLE[hash_value] = (max_eval, depth, flag)
             return max_eval
         else:
             min_eval = float('inf')
             for move in valid_moves:
-                new_game = Othello(difficulty=self.depth)
-                new_game.board = self.board.copy()
-                new_game.current_player = self.current_player
+                new_game = copy.deepcopy(self)
                 new_game.make_move(move)
+                new_game.current_player *= -1
                 eval = new_game.minimax(depth - 1, alpha, beta, True)
                 min_eval = min(min_eval, eval)
                 beta = min(beta, eval)
                 if beta <= alpha:
                     break
-            flag = 'exact' if min_eval >= beta else 'upperbound'
-            TRANSPOSITION_TABLE[hash_value] = (min_eval, depth, flag)
             return min_eval
 
     def get_best_move(self):
-        """Get the best move using Minimax with Alpha-Beta pruning and Zobrist hashing."""
+        """Get the best move using Minimax with Alpha-Beta pruning."""
         valid_moves = self.get_valid_moves()
         if not valid_moves:
             return None
@@ -219,10 +191,9 @@ class Othello:
         alpha = float('-inf')
         beta = float('inf')
         for move in valid_moves:
-            new_game = Othello(difficulty=self.depth)
-            new_game.board = self.board.copy()
-            new_game.current_player = self.current_player
+            new_game = copy.deepcopy(self)
             new_game.make_move(move)
+            new_game.current_player *= -1
             score = new_game.minimax(self.depth - 1, alpha, beta, False)
             if score > best_score:
                 best_score = score
@@ -232,9 +203,7 @@ class Othello:
 
     def self_play_and_train(self, num_games=10):
         """Simulate AI vs. AI games and train the model."""
-        global TRANSPOSITION_TABLE
         for _ in range(num_games):
-            TRANSPOSITION_TABLE.clear()  # Clear transposition table for each game
             game_states = []
             current_game = Othello(difficulty=self.depth)
             while not current_game.is_game_over():
@@ -243,19 +212,42 @@ class Othello:
                     current_game.current_player *= -1
                     continue
                 move = current_game.get_best_move()
+                if move is None:
+                    break
                 current_game.make_move(move)
+                current_game.current_player *= -1
                 game_states.extend(current_game.game_states)
                 current_game.game_states = []  # Clear for next move
             outcome = current_game.get_winner()
             self.update_model(game_states, outcome)
         return {"message": f"Trained on {num_games} self-play games"}
 
+def serialize_game(game):
+    """Serialize Othello instance to dict for session storage."""
+    return {
+        'board': game.board.tolist(),
+        'current_player': game.current_player,
+        'game_states': [(state.tolist(), player) for state, player in game.game_states],
+        'game_outcome': game.game_outcome,
+        'depth': game.depth
+    }
+
+def deserialize_game(data):
+    """Deserialize dict to Othello instance."""
+    game = Othello()  # Difficulty not needed since depth is set later
+    game.board = np.array(data['board'])
+    game.current_player = data['current_player']
+    game.game_states = [(np.array(state), player) for state, player in data['game_states']]
+    game.game_outcome = data['game_outcome']
+    game.depth = data['depth']
+    return game
+
 @app.route('/start_game', methods=['POST'])
 def start_game():
-    global game
     data = request.json
     difficulty = data.get('difficulty', 'medium')
     game = Othello(difficulty=difficulty)
+    session['game'] = serialize_game(game)
     return jsonify({
         'status': 'success',
         'board': game.board.flatten().tolist(),
@@ -266,22 +258,33 @@ def start_game():
 
 @app.route('/make_move', methods=['POST'])
 def make_move():
-    global game
-    if not game:
+    if 'game' not in session:
         return jsonify({'status': 'error', 'message': 'Game not started'}), 400
+    game = deserialize_game(session['game'])
     data = request.json
-    move = (data['row'], data['col'])
+    try:
+        row = int(data['row'])
+        col = int(data['col'])
+    except (KeyError, ValueError, TypeError):
+        return jsonify({'status': 'error', 'message': 'Invalid row or col'}), 400
+    move = (row, col)
+    if not (0 <= row < BOARD_SIZE and 0 <= col < BOARD_SIZE):
+        return jsonify({'status': 'error', 'message': 'Move out of bounds'}), 400
     if move not in game.get_valid_moves():
-        return jsonify({'status': 'error', 'message': 'Invalid move'}), 400
+        return jupytext({'status': 'error', 'message': 'Invalid move'}), 400
     game.make_move(move)
-    ai_move = game.get_best_move() if game.current_player == WHITE else None
-    if ai_move:
-        game.make_move(ai_move)
-    game.current_player *= -1
+    game.current_player *= -1  # Switch to AI
+    ai_move = None
+    if game.current_player == WHITE:  # Assuming AI plays as WHITE
+        ai_move = game.get_best_move()
+        if ai_move:
+            game.make_move(ai_move)
+            game.current_player *= -1  # Switch back to player
     game_over = game.is_game_over()
     if game_over:
         game.game_outcome = game.get_winner()
         game.update_model(game.game_states, game.game_outcome)
+    session['game'] = serialize_game(game)
     return jsonify({
         'status': 'success',
         'board': game.board.flatten().tolist(),
@@ -293,25 +296,28 @@ def make_move():
 
 @app.route('/suggest_move', methods=['GET'])
 def suggest_move():
-    global game
-    if not game:
+    if 'game' not in session:
         return jsonify({'status': 'error', 'message': 'Game not started'}), 400
+    game = deserialize_game(session['game'])
     move = game.get_best_move()
     return jsonify({'status': 'success', 'move': move})
 
 @app.route('/train', methods=['POST'])
 def train():
-    global game
-    if not game or not game.game_states or game.game_outcome is None:
+    if 'game' not in session:
+        return jsonify({'status': 'error', 'message': 'Game not started'}), 400
+    game = deserialize_game(session['game'])
+    if not game.game_states or game.game_outcome is None:
         return jsonify({'status': 'error', 'message': 'No game data to train'}), 400
     game.update_model(game.game_states, game.game_outcome)
+    session['game'] = serialize_game(game)
     return jsonify({'status': 'success', 'message': 'Model trained'})
 
 @app.route('/board_state', methods=['GET'])
 def board_state():
-    global game
-    if not game:
+    if 'game' not in session:
         return jsonify({'status': 'error', 'message': 'Game not started'}), 400
+    game = deserialize_game(session['game'])
     return jsonify({
         'status': 'success',
         'board': game.board.flatten().tolist(),
@@ -320,12 +326,13 @@ def board_state():
 
 @app.route('/self_train', methods=['POST'])
 def self_train():
-    global game
-    if not game:
+    if 'game' not in session:
         return jsonify({'status': 'error', 'message': 'Game not started'}), 400
+    game = deserialize_game(session['game'])
     data = request.json
     num_games = data.get('num_games', 10)
     result = game.self_play_and_train(num_games)
+    session['game'] = serialize_game(game)
     return jsonify({'status': 'success', **result})
 
 if __name__ == '__main__':
