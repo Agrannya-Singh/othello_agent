@@ -461,7 +461,7 @@ def index():
                 </div>
             </div>
 
-            <a href="#" class="cta-button">&gt;&gt; Enter the Dojo &amp; Start a Game &lt;&lt;</a>
+            <a href="https://othello-dojo.vercel.app/" class="cta-button">&gt;&gt; Enter the Dojo &amp; Start a Game &lt;&lt;</a>
         </div>
     </body>
     </html>
