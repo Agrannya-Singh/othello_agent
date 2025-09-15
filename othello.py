@@ -273,8 +273,7 @@ class Token:
         pass
 
     def draw(self, window):
-        pygame.draw.cicrcle(window,self.colour,(self.posX,self.posY),30)
-
+        pygame.draw.circle(window, self.colour, (self.posX + 40, self.posY + 40), 30)
 
 if __name__ == '__main__':
     game = Othello()
