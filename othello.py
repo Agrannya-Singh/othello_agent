@@ -81,7 +81,13 @@ class Othello:
                             swappableTiles = self.grid.swappableTiles(y, x, self.grid.gridLogic, self.currentPlayer)
                             for tile in swappableTiles:
                                 self.grid.animateTransitions(tile, self.currentPlayer)
-                                self.grid.gridLogic[tile[0]][tile[1]] *= -1
+                                token = self.grid.tokens.get((tile[0], tile[1]))
+                                if token:
+                                    token.player *= -1
+                                    token.colour = (
+                                        self.grid.whitetoken_colour if token.player == 1 else self.grid.blacktoken_colour
+                                    )
+                                    self.grid.gridLogic[tile[0]][tile[1]] = token.player
                             self.currentPlayer *= -1
                             self.time = pygame.time.get_ticks()
 
