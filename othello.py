@@ -221,6 +221,7 @@ class Othello:
             for cell in row:
                 total += cell
         return -total
+
     def checkGameEnd(self):
         """Check if the game should end and update game_over status"""
         player1_moves = self.grid.findAvailMoves(self.grid.gridLogic, self.player1)
