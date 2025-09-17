@@ -180,7 +180,9 @@ class Othello:
             return self.evaluate(grid)
         validMoves = self.grid.findAvailMoves(grid, self.player2)
         if not validMoves:
-            return self.evaluate(grid)
+            # Pass turn if opponent has moves; otherwise terminal.
+            opp_moves = self.grid.findAvailMoves(grid, self.player1)
+            return self.evaluate(grid) if not opp_moves else self.minValue(grid, depth)
         maxEval = -math.inf
         for move in validMoves:
             y, x = move
@@ -198,7 +200,8 @@ class Othello:
             return self.evaluate(grid)
         validMoves = self.grid.findAvailMoves(grid, self.player1)
         if not validMoves:
-            return self.evaluate(grid)
+            opp_moves = self.grid.findAvailMoves(grid, self.player2)
+            return self.evaluate(grid) if not opp_moves else self.maxValue(grid, depth)
         minEval = math.inf
         for move in validMoves:
             y, x = move
@@ -212,13 +215,12 @@ class Othello:
         return minEval
 
     def evaluate(self, grid):
-        # Simple evaluation: count difference in tokens
-        count = 0
+        # Positive is good for Black (player2), negative for White.
+        total = 0
         for row in grid:
             for cell in row:
-                count += cell
-        return count
-
+                total += cell
+        return -total
     def checkGameEnd(self):
         """Check if the game should end and update game_over status"""
         player1_moves = self.grid.findAvailMoves(self.grid.gridLogic, self.player1)
