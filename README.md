@@ -1,6 +1,8 @@
 # othello_backend
 
 google collab note book for model training : https://colab.research.google.com/drive/1Limm2oFEha1HED5FOWjXWig_DiYBTMSe?usp=sharing
+notebook is deprecated ; follow this kaggle link : https://www.kaggle.com/code/agrannyasingh/othello-v3/output
+will give updates on the eval model 
 # Othello API 
 
 A machine learning-powered Othello (Reversi) game API built with Flask and TensorFlow. This repository serves as the backend API and ML training engine for the [Othello-Dojo](https://github.com/Agrannya-Singh/Othello-Dojo) frontend application.
