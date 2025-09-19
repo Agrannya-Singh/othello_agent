@@ -3,21 +3,21 @@
   {
    "cell_type": "code",
    "execution_count": 1,
-   "id": "55bb1529",
+   "id": "3bc0606c",
    "metadata": {
     "_cell_guid": "b1076dfc-b9ad-4769-8c92-a6c4dae69d19",
     "_uuid": "8f2839f25d086af736a60e9eeb907d3b93b6e0e5",
     "execution": {
-     "iopub.execute_input": "2025-09-19T20:58:21.930182Z",
-     "iopub.status.busy": "2025-09-19T20:58:21.929908Z",
-     "iopub.status.idle": "2025-09-19T20:58:28.349131Z",
-     "shell.execute_reply": "2025-09-19T20:58:28.348124Z"
+     "iopub.execute_input": "2025-09-19T21:01:16.137354Z",
+     "iopub.status.busy": "2025-09-19T21:01:16.137163Z",
+     "iopub.status.idle": "2025-09-19T21:01:23.536755Z",
+     "shell.execute_reply": "2025-09-19T21:01:23.535999Z"
     },
     "papermill": {
-     "duration": 6.423646,
-     "end_time": "2025-09-19T20:58:28.350548",
+     "duration": 7.403337,
+     "end_time": "2025-09-19T21:01:23.537852",
      "exception": false,
-     "start_time": "2025-09-19T20:58:21.926902",
+     "start_time": "2025-09-19T21:01:16.134515",
      "status": "completed"
     },
     "tags": []
@@ -30,9 +30,9 @@
       "--- Othello AI Evaluation ---\n",
       "\n",
       "--- Starting Evaluation ---\n",
-      "No multiprocessing. It's not like I couldn't handle it, but your environment is just too clumsy, nya.\n",
+      "No multiprocessing. It's not like I couldn't handle it, but your environment is just too clumsy.\n",
       "\n",
-      "Ugh, something broke. It's probably your fault. Error: [Errno 2] No such file or directory: 'othello_model_v3.pth'\n"
+      "Ugh, something broke. It's probably your fault. Error: [Errno 21] Is a directory: '/kaggle/input/othello_model_v3.pth/pytorch/default/1'\n"
      ]
     }
    ],
@@ -258,7 +258,7 @@
     "# =============================================================================\n",
     "def run_sequential_evaluation(model_path: str, num_games: int, opponent_depth: int):\n",
     "    print(f\"\\n--- Starting Evaluation ---\")\n",
-    "    print(\"No multiprocessing. It's not like I couldn't handle it, but your environment is just too clumsy, nya.\")\n",
+    "    print(\"No multiprocessing. It's not like I couldn't handle it, but your environment is just too clumsy.\")\n",
     "    \n",
     "    model = OthelloNetV3().to(DEVICE)\n",
     "    model.load_state_dict(torch.load(model_path, map_location=DEVICE))\n",
@@ -297,7 +297,7 @@
     "# It all starts here. \n",
     "# =============================================================================\n",
     "if __name__ == \"__main__\":\n",
-    "    MODEL_SAVE_PATH = 'othello_model_v3.pth'\n",
+    "    MODEL_SAVE_PATH = '/kaggle/input/othello_model_v3.pth/pytorch/default/1'\n",
     "    NUM_GAMES_TO_EVAL = 100\n",
     "    OPPONENT_DEPTH = 4\n",
     "    \n",
@@ -351,14 +351,14 @@
   },
   "papermill": {
    "default_parameters": {},
-   "duration": 13.451934,
-   "end_time": "2025-09-19T20:58:29.874391",
+   "duration": 14.663907,
+   "end_time": "2025-09-19T21:01:25.159224",
    "environment_variables": {},
    "exception": null,
    "input_path": "__notebook__.ipynb",
    "output_path": "__notebook__.ipynb",
    "parameters": {},
-   "start_time": "2025-09-19T20:58:16.422457",
+   "start_time": "2025-09-19T21:01:10.495317",
    "version": "2.6.0"
   }
  },
