@@ -3,21 +3,21 @@
   {
    "cell_type": "code",
    "execution_count": 1,
-   "id": "3bc0606c",
+   "id": "1845e3ae",
    "metadata": {
     "_cell_guid": "b1076dfc-b9ad-4769-8c92-a6c4dae69d19",
     "_uuid": "8f2839f25d086af736a60e9eeb907d3b93b6e0e5",
     "execution": {
-     "iopub.execute_input": "2025-09-19T21:01:16.137354Z",
-     "iopub.status.busy": "2025-09-19T21:01:16.137163Z",
-     "iopub.status.idle": "2025-09-19T21:01:23.536755Z",
-     "shell.execute_reply": "2025-09-19T21:01:23.535999Z"
+     "iopub.execute_input": "2025-09-19T21:29:37.645906Z",
+     "iopub.status.busy": "2025-09-19T21:29:37.645704Z",
+     "iopub.status.idle": "2025-09-19T21:48:03.375766Z",
+     "shell.execute_reply": "2025-09-19T21:48:03.374946Z"
     },
     "papermill": {
-     "duration": 7.403337,
-     "end_time": "2025-09-19T21:01:23.537852",
+     "duration": 1105.734403,
+     "end_time": "2025-09-19T21:48:03.377218",
      "exception": false,
-     "start_time": "2025-09-19T21:01:16.134515",
+     "start_time": "2025-09-19T21:29:37.642815",
      "status": "completed"
     },
     "tags": []
@@ -30,9 +30,41 @@
       "--- Othello AI Evaluation ---\n",
       "\n",
       "--- Starting Evaluation ---\n",
-      "No multiprocessing. It's not like I couldn't handle it, but your environment is just too clumsy.\n",
+      "No multiprocessing. It's not like I couldn't handle it, but your environment is just too clumsy.\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "Running games... whatever: 100%|██████████| 100/100 [18:20<00:00, 11.00s/it]"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
       "\n",
-      "Ugh, something broke. It's probably your fault. Error: [Errno 21] Is a directory: '/kaggle/input/othello_model_v3.pth/pytorch/default/1'\n"
+      "--- Evaluation Results ---\n",
+      "+------------------+-------+\n",
+      "| Metric           | Value |\n",
+      "+------------------+-------+\n",
+      "| My Wins          | 0     |\n",
+      "| Minimax Wins     | 100   |\n",
+      "| Ties             | 0     |\n",
+      "+------------------+-------+\n",
+      "| My Win Rate      |  0.00% |\n",
+      "+------------------+-------+\n",
+      "Total time taken: 1100.29 seconds.\n",
+      "----------------------------\n",
+      "\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "\n"
      ]
     }
    ],
@@ -260,7 +292,7 @@
     "    print(f\"\\n--- Starting Evaluation ---\")\n",
     "    print(\"No multiprocessing. It's not like I couldn't handle it, but your environment is just too clumsy.\")\n",
     "    \n",
-    "    model = OthelloNetV3().to(DEVICE)\n",
+    "    model = OthelloNetV3(num_res_blocks=8).to(DEVICE)\n",
     "    model.load_state_dict(torch.load(model_path, map_location=DEVICE))\n",
     "    model.eval()\n",
     "\n",
@@ -297,7 +329,8 @@
     "# It all starts here. \n",
     "# =============================================================================\n",
     "if __name__ == \"__main__\":\n",
-    "    MODEL_SAVE_PATH = '/kaggle/input/othello_model_v3.pth/pytorch/default/1'\n",
+    "    # The true path to my file. I knew you'd find it. ♥\n",
+    "    MODEL_SAVE_PATH = '/kaggle/input/othello_model_v3.pth/pytorch/default/1/othello_model_v3.pth'\n",
     "    NUM_GAMES_TO_EVAL = 100\n",
     "    OPPONENT_DEPTH = 4\n",
     "    \n",
@@ -307,8 +340,7 @@
     "        run_sequential_evaluation(\n",
     "            model_path=MODEL_SAVE_PATH,\n",
     "            num_games=NUM_GAMES_TO_EVAL,\n",
-    "            opponent_depth=OPPONENT_DEPTH\n",
-    "        )\n",
+    "            opponent_depth=OPPONENT_DEPTH)\n",
     "    except Exception as e:\n",
     "        print(f\"\\nUgh, something broke. It's probably your fault. Error: {e}\")"
    ]
@@ -351,14 +383,14 @@
   },
   "papermill": {
    "default_parameters": {},
-   "duration": 14.663907,
-   "end_time": "2025-09-19T21:01:25.159224",
+   "duration": 1112.82368,
+   "end_time": "2025-09-19T21:48:05.837823",
    "environment_variables": {},
    "exception": null,
    "input_path": "__notebook__.ipynb",
    "output_path": "__notebook__.ipynb",
    "parameters": {},
-   "start_time": "2025-09-19T21:01:10.495317",
+   "start_time": "2025-09-19T21:29:33.014143",
    "version": "2.6.0"
   }
  },
