@@ -56,6 +56,9 @@ The AI employs a hybrid approach:
     Heuristic Fallback: Uses corner control and mobility when ML is unavailable
 
 ## Backend Video links
+
+the following videos showcase the gameplay with traditional min-max model in a isolated pygame enviromnment \n
+
 Human v/s AI : https://drive.google.com/file/d/1nyodsrBJdIl6aAzWYCHJP2Kr3cwh94hW/view?usp=sharing 
 
 Human vs Human : https://drive.google.com/file/d/1DHhmvW2UvXR9-a8nu-Cg08Ngs9SzTLoh/view?usp=sharing 
