@@ -7,11 +7,11 @@ will give updates on the eval model
 
 A machine learning-powered Othello (Reversi) game API built with Flask and TensorFlow. This repository serves as the backend API and ML training engine for the [Othello-Dojo](https://github.com/Agrannya-Singh/Othello-Dojo) frontend application.
 
-## 🎯 Overview
+##  Overview
 
 This API provides a self-learning Othello engine that uses neural networks to improve its gameplay over time. Unlike traditional rule-based AI, this implementation leverages machine learning to adapt and evolve its strategy through self-play and game analysis.
 
-## 🚀 Features
+##  Features
 
 - **Machine Learning Engine**: TensorFlow-powered neural network for board evaluation
 - **Self-Training**: AI can improve through self-play sessions
@@ -20,7 +20,7 @@ This API provides a self-learning Othello engine that uses neural networks to im
 - **Real-time Training**: Update the model with game outcomes
 - **Session Management**: Persistent game states across requests
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 - **Backend**: Flask (Python)
 - **ML Framework**: TensorFlow/Keras
@@ -28,7 +28,7 @@ This API provides a self-learning Othello engine that uses neural networks to im
 - **Session Management**: Flask sessions with secure cookies
 - **Additional**: Pygame for game utilities
 
-## 📋 Requirements
+##  Requirements
 lask==2.3.2
 numpy==1.24.3
 tensorflow==2.15.0
@@ -46,7 +46,7 @@ This API works in conjunction with Othello-Dojo https://github.com/Agrannya-Sing
 <img width="777" height="383" alt="image" src="https://github.com/user-attachments/assets/26a4ccf8-fdfe-417a-974b-fbe1eb3109a1" />
 
 
-🤖 AI Behavior
+ AI Behavior
 
 The AI employs a hybrid approach:
 
